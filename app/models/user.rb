@@ -11,11 +11,7 @@ class User < ActiveRecord::Base
   has_many :following_users, through: :following_relationships, source: :followed
   has_many :followed_relationships, class_name:  "Relationship", foreign_key: "followed_id", dependent: :destroy
   has_many :followed_users, through: :followed_relationships, source: :follower
-
-  has_many :ownerships , foreign_key: "user_id", dependent: :destroy
-  has_many :items ,through: :ownerships
-
-
+  
   # 他のユーザーをフォローする
   def follow(other_user)
     following_relationships.create(followed_id: other_user.id)
@@ -29,8 +25,26 @@ class User < ActiveRecord::Base
     following_users.include?(other_user)
   end
 
+  has_many :ownerships , foreign_key: "user_id", dependent: :destroy
+  has_many :items ,through: :ownerships
+
+  has_many :wants, class_name: "Want", foreign_key: "user_id", dependent: :destroy
+  has_many :want_items , through: :wants, source: :item
+  has_many :haves, class_name: "Have", foreign_key: "user_id", dependent: :destroy
+  has_many :have_items , through: :haves, source: :item
+  
+  has_many :ownerships, foreign_key: "item_id", dependent: :destroy
+  has_many :users, through: :ownerships
+
+  has_many :wants, class_name: "Want", foreign_key: "item_id", dependent: :destroy
+  has_many :want_users , through: :wants, source: :user
+  has_many :haves, class_name: "Have", foreign_key: "item_id", dependent: :destroy
+  has_many :have_users , through: :haves, source: :user
+
+
   ## TODO 実装
   def have(item)
+    have_items.find_or_create_by(user_id, item.id)
   end
 
   def unhave(item)
